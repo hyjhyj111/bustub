@@ -1,6 +1,8 @@
 #include "primer/trie.h"
 #include <string_view>
 #include "common/exception.h"
+#include "fmt/chrono.h"
+#include <any>
 
 namespace bustub {
 
@@ -47,7 +49,6 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
 
   // You should walk through the trie and create new nodes if necessary. If the node corresponding to the key already
   // exists, you should create a new `TrieNodeWithValue`.
-
   auto root = root_;
   if (!root) {
     root = std::make_shared<const TrieNode>();
@@ -69,8 +70,10 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
     }
     children[ch] = self(self, kv.substr(1), next_node);
     if (node) {
-      if (auto val_node = std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(node)) {
-        return std::make_shared<TrieNodeWithValue<T>>(children, val_node->value_);
+      if (node->is_value_node_) {
+        auto clone_node = node->Clone();
+        clone_node->children_ = std::move(children);
+        return clone_node;
       }
     }
     return std::make_shared<const TrieNode>(children);
@@ -78,11 +81,36 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   return Trie{dfs(dfs, key, root)};
 }
 
-auto Trie::Remove(std::string_view key) const -> Trie {
-
+  auto Trie::Remove(std::string_view key) const -> Trie {
   // You should walk through the trie and remove nodes if necessary. If the node doesn't contain a value any more,
   // you should convert it to `TrieNode`. If a node doesn't have children any more, you should remove it.
-  auto dfs = [&]()
+  auto dfs = [&](auto &&self, const std::shared_ptr<const TrieNode>& node, int ind) -> std::shared_ptr<const TrieNode>{
+    if (ind == static_cast<int>(key.size())) {
+      if (!node->is_value_node_) {
+        return node;
+      }
+      if (node->children_.empty()) {
+        return nullptr;
+      }
+      return std::make_shared<const TrieNode>(node->children_);
+    }
+    const char &ch = key[ind];
+    if (!node->contains(ch)) {
+      return node;
+    }
+    auto next_node = self(self, node->children_.at(ch), ind + 1);
+    auto clone_node = node->Clone();
+    if (next_node == nullptr) {
+      clone_node->children_.erase(clone_node->children_.find(ch));
+    } else {
+      clone_node->children_[ch] = next_node;
+    }
+    if (clone_node->children_.empty() and !node->is_value_node_) {
+      return nullptr;
+    }
+    return clone_node;
+  };
+  return Trie{dfs(dfs, root_, 0)};
 }
 
 // Below are explicit instantiation of template functions.
