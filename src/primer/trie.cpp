@@ -81,7 +81,7 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   return Trie{dfs(dfs, key, root)};
 }
 
-  auto Trie::Remove(std::string_view key) const -> Trie {
+auto Trie::Remove(std::string_view key) const -> Trie {
   // You should walk through the trie and remove nodes if necessary. If the node doesn't contain a value any more,
   // you should convert it to `TrieNode`. If a node doesn't have children any more, you should remove it.
   auto dfs = [&](auto &&self, const std::shared_ptr<const TrieNode>& node, int ind) -> std::shared_ptr<const TrieNode>{
