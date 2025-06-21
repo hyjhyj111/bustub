@@ -1,8 +1,8 @@
 #include "primer/trie.h"
+#include <any>
 #include <string_view>
 #include "common/exception.h"
 #include "fmt/chrono.h"
-#include <any>
 
 namespace bustub {
 
@@ -27,7 +27,7 @@ auto Trie::Get(std::string_view key) const -> const T * {
   }
   auto p = root_;
   for (const auto &ch : key) {
-    if (!p->contains(ch)) {
+    if (!p->Contains(ch)) {
       return nullptr;
     }
     p = p->children_.at(ch);
@@ -53,7 +53,8 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   if (!root) {
     root = std::make_shared<const TrieNode>();
   }
-  auto dfs = [&](auto &&self, std::string_view kv, const std::shared_ptr<const TrieNode>& node) -> std::shared_ptr<const TrieNode>{
+  auto dfs = [&](auto &&self, std::string_view kv,
+                 const std::shared_ptr<const TrieNode> &node) -> std::shared_ptr<const TrieNode> {
     if (kv.empty()) {
       return std::make_shared<TrieNodeWithValue<T>>(node->children_, std::make_shared<T>(std::move(value)));
     }
@@ -63,7 +64,7 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
       children = node->children_;
     }
     std::shared_ptr<const TrieNode> next_node;
-    if (node and node->contains(ch)) {
+    if (node and node->Contains(ch)) {
       next_node = node->children_.at(ch);
     } else {
       next_node = std::make_shared<const TrieNode>();
@@ -84,7 +85,7 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
 auto Trie::Remove(std::string_view key) const -> Trie {
   // You should walk through the trie and remove nodes if necessary. If the node doesn't contain a value any more,
   // you should convert it to `TrieNode`. If a node doesn't have children any more, you should remove it.
-  auto dfs = [&](auto &&self, const std::shared_ptr<const TrieNode>& node, int ind) -> std::shared_ptr<const TrieNode>{
+  auto dfs = [&](auto &&self, const std::shared_ptr<const TrieNode> &node, int ind) -> std::shared_ptr<const TrieNode> {
     if (ind == static_cast<int>(key.size())) {
       if (!node->is_value_node_) {
         return node;
@@ -95,7 +96,7 @@ auto Trie::Remove(std::string_view key) const -> Trie {
       return std::make_shared<const TrieNode>(node->children_);
     }
     const char &ch = key[ind];
-    if (!node->contains(ch)) {
+    if (!node->Contains(ch)) {
       return node;
     }
     auto next_node = self(self, node->children_.at(ch), ind + 1);

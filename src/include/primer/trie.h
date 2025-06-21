@@ -65,9 +65,7 @@ class TrieNode {
   // the structure.
   std::map<char, std::shared_ptr<const TrieNode>> children_;
 
-  bool contains(const char &ch) const {
-    return children_.count(ch);
-  }
+  bool Contains(const char &ch) const { return children_.count(ch) != 0; }
   // Indicates if the node is the terminal node.
   bool is_value_node_{false};
 
