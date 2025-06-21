@@ -37,7 +37,6 @@ void TrieStore::Put(std::string_view key, T value) {
     std::lock_guard r_guard(root_lock_);
     root_ = std::move(root);
   }
-
 }
 
 void TrieStore::Remove(std::string_view key) {
